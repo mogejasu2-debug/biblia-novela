@@ -536,6 +536,19 @@ main{max-width:1100px;margin:0 auto;padding:14px 16px}
 .coautora-sug{font-size:11px;background:var(--acc-lo,rgba(201,151,58,0.1));color:var(--acc2,#e8bc6a);border:1px solid var(--acc-border,rgba(201,151,58,0.3));border-radius:20px;padding:4px 11px;cursor:pointer;transition:background 0.15s;white-space:nowrap}
 .coautora-sug:hover{background:rgba(201,151,58,0.2)}
 .coautora-ctx{font-size:10px;color:#4a4540;margin-top:5px;text-align:center}
+.coautora-layout{display:flex;flex:1;overflow:hidden}
+.coautora-sidebar{width:200px;flex-shrink:0;border-right:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;background:rgba(8,8,10,0.5)}
+.coautora-sidebar-head{padding:10px 12px;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--acc);border-bottom:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;align-items:center}
+.coautora-chat-list{flex:1;overflow-y:auto;padding:6px}
+.coautora-chat-item{padding:8px 10px;border-radius:7px;cursor:pointer;margin-bottom:3px;border:1px solid transparent;transition:background 0.15s}
+.coautora-chat-item:hover{background:rgba(255,255,255,0.05)}
+.coautora-chat-item.active{background:var(--acc-lo);border-color:var(--acc-border)}
+.coautora-chat-name{font-size:12px;color:#e0d8cc;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.coautora-chat-meta{font-size:10px;color:#6a6055}
+.coautora-chat-del{float:right;background:none;border:none;color:#3a3530;cursor:pointer;font-size:11px;padding:0}
+.coautora-chat-del:hover{color:#e05050}
+.coautora-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+@media(max-width:600px){.coautora-sidebar{display:none}}
 </style>
 </head>
 <body>
@@ -1591,7 +1604,6 @@ function buildTree(){
   const svg=document.getElementById('tree-svg');
   const filter=document.getElementById('tree-filter').value;
 
-  // Clear
   canvas.querySelectorAll('.tree-node').forEach(n=>n.remove());
   svg.innerHTML='';
 
@@ -1601,47 +1613,76 @@ function buildTree(){
 
   const relaciones=E().filter(d=>d.type==='relacion');
 
-  if(personajes.length===0){
+  if(!personajes.length){
     canvas.innerHTML='<svg class="tree-svg" id="tree-svg"></svg><div class="tree-empty"><div style="font-size:32px;margin-bottom:10px">🌳</div><p>Añade personajes primero para ver el árbol</p></div>';
     return;
   }
 
-  // Layout — arrange in a smart grid
-  const W=Math.max(canvas.offsetWidth||600, personajes.length*160);
-  const cols=Math.ceil(Math.sqrt(personajes.length*1.5));
-  const cellW=Math.max(180, W/cols);
-  const cellH=160;
-  const totalH=Math.ceil(personajes.length/cols)*cellH+80;
+  // Use full canvas size
+  const W=canvas.offsetWidth||800;
+  const H=canvas.offsetHeight||600;
+  canvas.style.width=W+'px';
+  canvas.style.height=H+'px';
+  svg.setAttribute('width',W);
+  svg.setAttribute('height',H);
 
-  canvas.style.width=Math.max(W,canvas.offsetWidth)+'px';
-  canvas.style.height=Math.max(totalH,canvas.offsetHeight)+'px';
-  svg.setAttribute('width',canvas.style.width);
-  svg.setAttribute('height',canvas.style.height);
-
+  const cx=W/2, cy=H/2;
   const positions={};
-  personajes.forEach((p,i)=>{
-    const col=i%cols;
-    const row=Math.floor(i/cols);
-    const x=col*cellW+cellW/2;
-    const y=row*cellH+80;
-    positions[p.id]={x,y,p};
-  });
 
-  // Draw relation lines
+  if(personajes.length===1){
+    positions[personajes[0].id]={x:cx,y:cy,p:personajes[0]};
+  } else if(personajes.length<=6){
+    // Circle layout
+    const r=Math.min(W,H)*0.35;
+    personajes.forEach((p,i)=>{
+      const angle=(i/personajes.length)*Math.PI*2 - Math.PI/2;
+      positions[p.id]={x:cx+r*Math.cos(angle),y:cy+r*Math.sin(angle),p};
+    });
+  } else {
+    // Inner ring + outer ring
+    const inner=personajes.slice(0,Math.ceil(personajes.length/3));
+    const outer=personajes.slice(Math.ceil(personajes.length/3));
+    const r1=Math.min(W,H)*0.22;
+    const r2=Math.min(W,H)*0.42;
+    inner.forEach((p,i)=>{
+      const angle=(i/inner.length)*Math.PI*2 - Math.PI/2;
+      positions[p.id]={x:cx+r1*Math.cos(angle),y:cy+r1*Math.sin(angle),p};
+    });
+    outer.forEach((p,i)=>{
+      const angle=(i/outer.length)*Math.PI*2 - Math.PI/2;
+      positions[p.id]={x:cx+r2*Math.cos(angle),y:cy+r2*Math.sin(angle),p};
+    });
+  }
+
+  // Draw relation lines — match exactly 2 personajes per relation
   relaciones.forEach(rel=>{
-    const txt=((rel.name||'')+' '+(rel.related_to||'')).toLowerCase();
-    const connected=Object.values(positions).filter(({p})=>
-      txt.includes((p.name||'').toLowerCase().substring(0,5))&&p.name&&p.name.length>3
-    );
-    if(connected.length>=2){
-      for(let i=0;i<connected.length-1;i++){
-        const a=connected[i],b=connected[i+1];
-        const line=document.createElementNS('http://www.w3.org/2000/svg','line');
-        line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);
-        line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);
-        line.setAttribute('opacity','0.5');
-        svg.appendChild(line);
-      }
+    const relText=((rel.name||'')+' '+(rel.related_to||'')).toLowerCase();
+    const matched=Object.values(positions).filter(({p})=>{
+      const firstName=(p.name||'').split(' ')[0].toLowerCase();
+      return firstName.length>2 && relText.includes(firstName);
+    });
+    if(matched.length===2){
+      const a=matched[0],b=matched[1];
+      const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);
+      line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);
+      line.setAttribute('opacity','0.6');
+      const title=document.createElementNS('http://www.w3.org/2000/svg','title');
+      title.textContent=rel.name||'';
+      line.appendChild(title);
+      svg.appendChild(line);
+
+      // Add relation label in the middle
+      const lx=(a.x+b.x)/2, ly=(a.y+b.y)/2;
+      const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x',lx);txt.setAttribute('y',ly-4);
+      txt.setAttribute('text-anchor','middle');
+      txt.setAttribute('font-size','9');
+      txt.setAttribute('fill','rgba(201,151,58,0.6)');
+      txt.setAttribute('font-family','Inter,sans-serif');
+      const relName=(rel.name||'').split('↔')[0].trim().substring(0,20);
+      txt.textContent=relName;
+      svg.appendChild(txt);
     }
   });
 
@@ -1650,24 +1691,19 @@ function buildTree(){
     const div=document.createElement('div');
     div.className='tree-node';
     div.style.left=x+'px';div.style.top=y+'px';
-
-    // Get reference image
+    const initials=(p.name||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
     const refImg=E().find(d=>d.type==='referencia'&&d.img_url&&
       ((d.name||'').toLowerCase().includes((p.name||'').toLowerCase().split(' ')[0])||
        (d.related_to||'').toLowerCase().includes((p.name||'').toLowerCase().split(' ')[0]))
     );
-
-    const initials=(p.name||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
     const imgHtml=refImg
       ?`<img class="tree-node-img" src="${refImg.img_url}" alt="${p.name}" onerror="this.style.display='none'">`
       :`<div class="tree-node-avatar">${initials}</div>`;
-
     div.innerHTML=`<div class="tree-node-card">
       ${imgHtml}
       <div class="tree-node-name">${p.name||''}</div>
-      ${p.category?`<div class="tree-node-cat">${p.category}</div>`:''}
+      ${p.category?`<div class="tree-node-cat">${p.category.split(',')[0].trim()}</div>`:''}
     </div>`;
-
     div.addEventListener('click',()=>selectTreeNode(p.id,div));
     canvas.appendChild(div);
   });
@@ -2788,8 +2824,11 @@ function checkApiKey(){
   }
   return key;
 }
-const SKChat='gema-chat-v1';
+const SKChats='gema-chats-v2';
 let coautoraHistory=[];
+let currentChatId=null;
+let coautoraTTSEnabled=false;
+
 const SUGGESTIONS_CA={
   general:['¿Tiene coherencia mi trama?','¿Qué le falta a mi novela?','Dame feedback general'],
   trama:['¿Cómo mejorar el conflicto principal?','¿El giro tiene sentido?','¿Cómo terminar este arco?'],
@@ -2799,120 +2838,62 @@ const SUGGESTIONS_CA={
   personaje:['¿Qué motivación tiene este personaje?','¿Es consistente su comportamiento?','¿Cómo evolucionaría aquí?'],
   investigacion:['Necesito información sobre…','¿Es posible esto en la vida real?','¿Cómo funciona realmente…?']
 };
-
+function getAllChats(){try{const d=localStorage.getItem(SKChats+'_'+proj);return d?JSON.parse(d):[];}catch{return[];}}
+function saveAllChats(c){localStorage.setItem(SKChats+'_'+proj,JSON.stringify(c));}
 function openCoautora(){
   document.getElementById('coautora-overlay').classList.add('active');
-  const saved=localStorage.getItem(SKChat+'_'+proj);
-  coautoraHistory=saved?JSON.parse(saved):[];
-  renderCoautoraHistory();
-  updateCoautoraSugs();
-  updateCoautoraCtx();
+  let chats=getAllChats();
+  if(!chats.length){const nc={id:crypto.randomUUID(),name:'Chat general',messages:[],created_at:new Date().toISOString()};chats=[nc];saveAllChats(chats);}
+  currentChatId=chats[0].id;coautoraHistory=chats[0].messages||[];
+  renderChatList();renderCoautoraHistory();updateCoautoraSugs();updateCoautoraCtx();
   setTimeout(()=>document.getElementById('coautora-input').focus(),150);
 }
-function closeCoautora(){document.getElementById('coautora-overlay').classList.remove('active')}
-function clearCoautora(){
-  if(!confirm('¿Borrar el historial del chat?'))return;
-  coautoraHistory=[];localStorage.removeItem(SKChat+'_'+proj);renderCoautoraHistory();
+function closeCoautora(){document.getElementById('coautora-overlay').classList.remove('active');window.speechSynthesis.cancel();}
+function newCoautoraChat(){
+  const name=prompt('Nombre para esta conversación:','Nueva conversación');if(!name)return;
+  saveCurrentChat();const chats=getAllChats();
+  const nc={id:crypto.randomUUID(),name,messages:[],created_at:new Date().toISOString()};
+  chats.unshift(nc);saveAllChats(chats);currentChatId=nc.id;coautoraHistory=[];
+  renderChatList();renderCoautoraHistory();
 }
-function saveCoautoraHist(){localStorage.setItem(SKChat+'_'+proj,JSON.stringify(coautoraHistory.slice(-40)));}
-
+function switchChat(id){saveCurrentChat();currentChatId=id;const chats=getAllChats();const chat=chats.find(c=>c.id===id);coautoraHistory=chat?(chat.messages||[]):[];renderChatList();renderCoautoraHistory();}
+function saveCurrentChat(){if(!currentChatId)return;const chats=getAllChats();const idx=chats.findIndex(c=>c.id===currentChatId);if(idx!==-1){chats[idx].messages=coautoraHistory;chats[idx].updated_at=new Date().toISOString();saveAllChats(chats);}}
+function deleteChat(id,e){e.stopPropagation();if(!confirm('¿Eliminar esta conversación?'))return;let chats=getAllChats().filter(c=>c.id!==id);if(!chats.length){chats=[{id:crypto.randomUUID(),name:'Chat general',messages:[],created_at:new Date().toISOString()}];}saveAllChats(chats);if(currentChatId===id){currentChatId=chats[0].id;coautoraHistory=chats[0].messages||[];}renderChatList();renderCoautoraHistory();}
+function renderChatList(){const list=document.getElementById('coautora-chat-list');if(!list)return;const chats=getAllChats();list.innerHTML=chats.map(c=>`<div class="coautora-chat-item${c.id===currentChatId?' active':''}" onclick="switchChat('${c.id}')"><button class="coautora-chat-del" onclick="deleteChat('${c.id}',event)">✕</button><div class="coautora-chat-name">${c.name}</div><div class="coautora-chat-meta">${c.messages?.length||0} mensajes</div></div>`).join('');}
+function clearCoautora(){if(!confirm('¿Borrar los mensajes de esta conversación?'))return;coautoraHistory=[];saveCurrentChat();renderCoautoraHistory();}
+function saveCoautoraHist(){saveCurrentChat();}
 function renderCoautoraHistory(){
-  const body=document.getElementById('coautora-body');
-  if(!coautoraHistory.length){
-    const name=PROJS[proj]?.name||'';
-    body.innerHTML=`<div style="text-align:center;color:#4a4540;padding:40px 20px;font-size:13px"><div style="font-size:36px;margin-bottom:12px">🤖</div><p style="line-height:1.8">Hola — soy tu coautora.<br>Tengo acceso a toda tu biblia de<br><strong style="color:var(--acc2)">${name}</strong>.<br>Pregúntame lo que necesites.</p></div>`;
-    return;
-  }
+  const body=document.getElementById('coautora-body');if(!body)return;
+  if(!coautoraHistory.length){const name=PROJS[proj]?.name||'';const chats=getAllChats();const chat=chats.find(c=>c.id===currentChatId);body.innerHTML=`<div style="text-align:center;color:#4a4540;padding:40px 20px;font-size:13px"><div style="font-size:36px;margin-bottom:12px">🤖</div><p style="line-height:1.8">${chat?`<strong style="color:var(--acc2)">${chat.name}</strong><br>`:''}Tengo acceso a toda tu biblia de<br><strong style="color:var(--acc2)">${name}</strong>.<br>Pregúntame lo que necesites.</p></div>`;return;}
   body.innerHTML=coautoraHistory.map(m=>`<div class="coautora-msg ${m.role==='user'?'user':'ai'}">${m.content.replace(/\n/g,'<br>')}</div>`).join('');
   body.scrollTop=body.scrollHeight;
 }
-
-function updateCoautoraSugs(){
-  const mode=document.getElementById('coautora-mode').value;
-  const sugs=SUGGESTIONS_CA[mode]||SUGGESTIONS_CA.general;
-  document.getElementById('coautora-suggestions').innerHTML=sugs.map(s=>`<button class="coautora-sug" onclick="setSug('${s.replace(/'/g,"\\'")}')">${s}</button>`).join('');
-}
-function updateCoautoraCtx(){
-  const total=E().length;
-  document.getElementById('coautora-ctx').textContent=total?`Accedo a ${total} registros de "${PROJS[proj]?.name}"`:' ';
-}
+function updateCoautoraSugs(){const el=document.getElementById('coautora-suggestions');if(!el)return;const mode=document.getElementById('coautora-mode').value;const sugs=SUGGESTIONS_CA[mode]||SUGGESTIONS_CA.general;el.innerHTML=sugs.map(s=>`<button class="coautora-sug" onclick="setSug('${s.replace(/'/g,"\\'")}'">${s}</button>`).join('');}
+function updateCoautoraCtx(){const el=document.getElementById('coautora-ctx');if(!el)return;const total=E().length;el.textContent=total?`Accedo a ${total} registros de "${PROJS[proj]?.name}"`:'';}
 function setSug(text){document.getElementById('coautora-input').value=text;document.getElementById('coautora-input').focus();}
-
 document.getElementById('coautora-mode').addEventListener('change',updateCoautoraSugs);
 document.getElementById('coautora-input').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
 document.getElementById('coautora-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendCoautora();}});
-
+function toggleCoautoraTTS(){coautoraTTSEnabled=!coautoraTTSEnabled;const btn=document.getElementById('coautora-tts-btn');if(btn){btn.style.background=coautoraTTSEnabled?'var(--acc-lo)':'';btn.style.color=coautoraTTSEnabled?'var(--acc2)':'';btn.style.borderColor=coautoraTTSEnabled?'var(--acc-border)':'';btn.title=coautoraTTSEnabled?'Voz ON — pulsa para desactivar':'Leer respuestas en voz alta';}}
+function readCoautoraResponse(text){if(!coautoraTTSEnabled)return;window.speechSynthesis.cancel();const utt=new SpeechSynthesisUtterance(text);utt.lang='es-ES';utt.rate=0.92;const voices=window.speechSynthesis.getVoices();const esVoice=voices.find(v=>v.lang.startsWith('es'));if(esVoice)utt.voice=esVoice;window.speechSynthesis.speak(utt);}
 function buildCoautoraSystem(){
-  const all=E();const citas=GC();
-  const mode=document.getElementById('coautora-mode').value;
-  const modos={
-    general:'Eres la coautora literaria de Gema Fernández. Actúa como editora profesional y amiga de confianza. Analiza su obra con criterio profesional pero con cariño.',
-    trama:'Eres experta en estructura narrativa. Ayuda a Gema a desarrollar y resolver problemas de trama. Piensa en arcos narrativos, giros y ritmo.',
-    coherencia:'Eres experta en coherencia narrativa. Comprueba que eventos, fechas y situaciones sean coherentes. Señala contradicciones e inverosimilitudes.',
-    analisis:'Eres editora literaria. Analiza el estilo, ritmo, voz narrativa, emociones y diálogos de los fragmentos que te comparta Gema.',
-    reescritura:'Eres escritora profesional. Reescribe los fragmentos de Gema manteniendo su voz pero mejorando lo que te pida.',
-    personaje:'Eres especialista en construcción de personajes. Analiza la psicología, motivaciones y evolución de los personajes.',
-    investigacion:'Eres investigadora y asesora de rigor para escritores. Ayuda a Gema a documentarse para que su novela sea realista.'
-  };
-  return `${modos[mode]||modos.general}
-
-NOVELA: "${PROJS[proj]?.name||proj}"
-
-BIBLIA:
-${all.slice(0,60).map(d=>{
-  let t=`[${(d.type||'').toUpperCase()}] ${d.name||''}`;
-  if(d.category)t+=` (${d.category})`;
-  if(d.description)t+=`\n  ${d.description}`;
-  if(d.details)t+=`\n  ${d.details.substring(0,150)}`;
-  if(d.related_to)t+=`\n  Relacionado: ${d.related_to}`;
-  if(d.scene_chars)t+=`\n  Personajes: ${d.scene_chars}`;
-  if(d.scene_goal)t+=`\n  Objetivo: ${d.scene_goal}`;
-  if(d.scene_conflict)t+=`\n  Conflicto: ${d.scene_conflict}`;
-  return t;
-}).join('\n\n')}
-${citas.length?'\nCITAS:\n'+citas.map(c=>`"${c.text}" — ${c.autor||''}`).join('\n'):''}
-
-Responde siempre en español, de forma directa y útil.`;
+  const all=E();const citas=GC();const mode=document.getElementById('coautora-mode').value;
+  const modos={general:'Eres la coautora literaria de Gema Fernández. Actúa como editora profesional y amiga de confianza.',trama:'Eres experta en estructura narrativa. Ayuda a Gema con trama, arcos y ritmo.',coherencia:'Eres experta en coherencia narrativa. Señala contradicciones e inverosimilitudes.',analisis:'Eres editora literaria. Analiza el estilo, ritmo y emociones.',reescritura:'Eres escritora profesional. Reescribe manteniendo la voz de Gema.',personaje:'Eres especialista en personajes. Analiza psicología y motivaciones.',investigacion:'Eres investigadora. Ayuda a documentarse para que la novela sea realista.'};
+  return `${modos[mode]||modos.general}\n\nNOVELA: "${PROJS[proj]?.name||proj}"\n\nBIBLIA:\n${all.slice(0,60).map(d=>{let t=`[${(d.type||'').toUpperCase()}] ${d.name||''}`;if(d.category)t+=` (${d.category})`;if(d.description)t+=`\n  ${d.description}`;if(d.details)t+=`\n  ${d.details.substring(0,150)}`;if(d.related_to)t+=`\n  Relacionado: ${d.related_to}`;if(d.scene_chars)t+=`\n  Personajes: ${d.scene_chars}`;return t;}).join('\n\n')}\n${citas.length?'\nCITAS:\n'+citas.map(c=>`"${c.text}" — ${c.autor||''}`).join('\n'):''}\n\nResponde siempre en español.`;
 }
-
 async function sendCoautora(){
-  const input=document.getElementById('coautora-input');
-  const q=input.value.trim();
-  if(!q)return;
-  const apiKey=checkApiKey();
-  if(!apiKey){alert('Necesitas una clave API de Anthropic para usar la Coautora.');return;}
-  const btn=document.getElementById('coautora-send');
-  btn.disabled=true;
-  input.value='';input.style.height='auto';
-  coautoraHistory.push({role:'user',content:q});
-  renderCoautoraHistory();
+  const input=document.getElementById('coautora-input');const q=input.value.trim();if(!q)return;
+  const apiKey=checkApiKey();if(!apiKey){alert('Necesitas una clave API de Anthropic.');return;}
+  const btn=document.getElementById('coautora-send');btn.disabled=true;input.value='';input.style.height='auto';
+  coautoraHistory.push({role:'user',content:q});renderCoautoraHistory();
   const body=document.getElementById('coautora-body');
-  const thinking=document.createElement('div');
-  thinking.className='coautora-msg thinking';
-  thinking.innerHTML='Pensando<span class="coautora-thinking-dots"><span>.</span><span>.</span><span>.</span></span>';
-  body.appendChild(thinking);body.scrollTop=body.scrollHeight;
+  const thinking=document.createElement('div');thinking.className='coautora-msg thinking';thinking.innerHTML='Pensando<span class="coautora-thinking-dots"><span>.</span><span>.</span><span>.</span></span>';body.appendChild(thinking);body.scrollTop=body.scrollHeight;
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:buildCoautoraSystem(),messages:coautoraHistory.map(m=>({role:m.role,content:m.content}))})
-    });
-    const data=await resp.json();
-    const answer=data.content?.map(b=>b.text||'').join('')||'Sin respuesta.';
-    thinking.remove();
-    coautoraHistory.push({role:'assistant',content:answer});
-    saveCoautoraHist();renderCoautoraHistory();
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:buildCoautoraSystem(),messages:coautoraHistory.map(m=>({role:m.role,content:m.content}))})});
+    const data=await resp.json();const answer=data.content?.map(b=>b.text||'').join('')||'Sin respuesta.';
+    thinking.remove();coautoraHistory.push({role:'assistant',content:answer});saveCoautoraHist();renderCoautoraHistory();readCoautoraResponse(answer);
   }catch(err){
-    thinking.remove();
-    const e=document.createElement('div');e.className='coautora-msg ai';e.style.color='#c06060';
-    e.textContent='❌ Error al conectar. Inténtalo de nuevo.';
-    body.appendChild(e);body.scrollTop=body.scrollHeight;
-    coautoraHistory.pop();
+    thinking.remove();const e=document.createElement('div');e.className='coautora-msg ai';e.style.color='#c06060';e.textContent='❌ Error al conectar.';body.appendChild(e);body.scrollTop=body.scrollHeight;coautoraHistory.pop();
   }
   btn.disabled=false;input.focus();
 }
@@ -2934,19 +2915,30 @@ loadAllFromSupabase().then(()=>updateHome());
         <option value="personaje">👤 Psicología personaje</option>
         <option value="investigacion">🔬 Investigar</option>
       </select>
-      <button class="writing-btn" onclick="clearCoautora()" style="font-size:11px;padding:5px 10px">🗑</button>
+      <button class="writing-btn" id="coautora-tts-btn" onclick="toggleCoautoraTTS()" style="font-size:11px;padding:5px 10px" title="Leer respuesta en voz alta">🔊</button>
       <button class="writing-btn" onclick="changeApiKey()" style="font-size:11px;padding:5px 10px">🔑</button>
       <button class="writing-btn" onclick="closeCoautora()" style="font-size:11px;padding:5px 10px">✕ Cerrar</button>
     </div>
   </div>
-  <div class="coautora-body" id="coautora-body"></div>
-  <div class="coautora-footer">
-    <div class="coautora-suggestions" id="coautora-suggestions"></div>
-    <div class="coautora-input-wrap">
-      <textarea class="coautora-textarea" id="coautora-input" placeholder="Pregúntame lo que quieras sobre tu novela… (Enter para enviar, Shift+Enter para salto de línea)" rows="1"></textarea>
-      <button class="coautora-send" id="coautora-send" onclick="sendCoautora()">➤</button>
+  <div class="coautora-layout">
+    <div class="coautora-sidebar">
+      <div class="coautora-sidebar-head">
+        💬 Conversaciones
+        <button onclick="newCoautoraChat()" style="background:var(--acc-lo);color:var(--acc2);border:1px solid var(--acc-border);border-radius:5px;padding:2px 8px;font-size:10px;cursor:pointer">+ Nueva</button>
+      </div>
+      <div class="coautora-chat-list" id="coautora-chat-list"></div>
     </div>
-    <p class="coautora-ctx" id="coautora-ctx"></p>
+    <div class="coautora-main">
+      <div class="coautora-body" id="coautora-body"></div>
+      <div class="coautora-footer">
+        <div class="coautora-suggestions" id="coautora-suggestions"></div>
+        <div class="coautora-input-wrap">
+          <textarea class="coautora-textarea" id="coautora-input" placeholder="Pregúntame lo que quieras… (Enter para enviar, Shift+Enter para salto de línea)" rows="1"></textarea>
+          <button class="coautora-send" id="coautora-send" onclick="sendCoautora()">➤</button>
+        </div>
+        <p class="coautora-ctx" id="coautora-ctx"></p>
+      </div>
+    </div>
   </div>
 </div>
 
