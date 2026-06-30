@@ -556,51 +556,26 @@ main{max-width:1100px;margin:0 auto;padding:14px 16px}
 <!-- HOME -->
 <div id="home-screen">
   <h1 class="home-title"><em>Gema Fernández</em> — Biblia</h1>
-  <p class="home-subtitle">Universo narrativo · Cuatro mundos</p>
-  <div class="projects-grid">
-    <div class="project-card theme-precio" onclick="openProject('precio')">
-      <div class="project-genre">Romance · Thriller psicológico · Barcelona</div>
-      <div class="project-title">El Precio del Deseo</div>
-      <div class="project-tagline">Dos personas. Dos mentiras. Un deseo que lo cambia todo.</div>
-      <div class="project-stats">
-        <div class="stat"><div class="stat-num" id="hc-precio-p">0</div><div class="stat-label">Personajes</div></div>
-        <div class="stat"><div class="stat-num" id="hc-precio-e">0</div><div class="stat-label">Escenas</div></div>
-        <div class="stat"><div class="stat-num" id="hc-precio-t">0</div><div class="stat-label">Total</div></div>
+  <p class="home-subtitle">Universo narrativo · Mis novelas</p>
+  <div class="projects-grid" id="projects-grid"></div>
+  <button onclick="showNewProjectForm()" style="margin-top:24px;background:rgba(255,255,255,0.06);color:#9a9080;border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 24px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif">+ Nuevo proyecto</button>
+
+  <div id="new-project-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center">
+    <div style="background:#14100a;border:1px solid rgba(201,151,58,0.3);border-radius:14px;padding:24px;max-width:400px;width:90%">
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#e8bc6a;margin-bottom:16px">Nuevo proyecto</h3>
+      <input type="text" id="np-title" placeholder="Título de la novela" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:9px 12px;color:#e0d8cc;font-family:'Inter',sans-serif;font-size:13px;outline:none;margin-bottom:10px">
+      <input type="text" id="np-genre" placeholder="Género · Ambientación (ej: Romance · Madrid)" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:9px 12px;color:#e0d8cc;font-family:'Inter',sans-serif;font-size:13px;outline:none;margin-bottom:10px">
+      <input type="text" id="np-tagline" placeholder="Frase corta de presentación" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:9px 12px;color:#e0d8cc;font-family:'Inter',sans-serif;font-size:13px;outline:none;margin-bottom:14px">
+      <select id="np-theme" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:9px 12px;color:#e0d8cc;font-family:'Inter',sans-serif;font-size:13px;outline:none;margin-bottom:14px">
+        <option value="theme-precio">Dorado</option>
+        <option value="theme-reset">Rojo</option>
+        <option value="theme-entrepinos">Verde</option>
+        <option value="theme-grounders">Naranja</option>
+      </select>
+      <div style="display:flex;gap:8px">
+        <button onclick="saveNewProject()" style="flex:1;background:#c9973a;color:#fff;border:none;border-radius:7px;padding:10px;font-size:13px;cursor:pointer;font-weight:600">Crear proyecto</button>
+        <button onclick="hideNewProjectForm()" style="background:rgba(255,255,255,0.06);color:#9a9080;border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:10px 16px;font-size:13px;cursor:pointer">Cancelar</button>
       </div>
-      <div class="project-enter">Entrar →</div>
-    </div>
-    <div class="project-card theme-reset" onclick="openProject('reset')">
-      <div class="project-genre">Ciencia ficción · Distopía · España 2045</div>
-      <div class="project-title">RESET</div>
-      <div class="project-tagline">El apagón no fue un accidente. Fue el primer paso.</div>
-      <div class="project-stats">
-        <div class="stat"><div class="stat-num" id="hc-reset-p">0</div><div class="stat-label">Personajes</div></div>
-        <div class="stat"><div class="stat-num" id="hc-reset-e">0</div><div class="stat-label">Escenas</div></div>
-        <div class="stat"><div class="stat-num" id="hc-reset-t">0</div><div class="stat-label">Total</div></div>
-      </div>
-      <div class="project-enter">Entrar →</div>
-    </div>
-    <div class="project-card theme-entrepinos" onclick="openProject('entrepinos')">
-      <div class="project-genre">Romance · Reconstrucción emocional · Pirineo</div>
-      <div class="project-title">Entrepinos</div>
-      <div class="project-tagline">No cuenta cómo se enamoran. Cuenta cómo vuelven a merecer serlo.</div>
-      <div class="project-stats">
-        <div class="stat"><div class="stat-num" id="hc-entrepinos-p">0</div><div class="stat-label">Personajes</div></div>
-        <div class="stat"><div class="stat-num" id="hc-entrepinos-e">0</div><div class="stat-label">Escenas</div></div>
-        <div class="stat"><div class="stat-num" id="hc-entrepinos-t">0</div><div class="stat-label">Total</div></div>
-      </div>
-      <div class="project-enter">Entrar →</div>
-    </div>
-    <div class="project-card theme-grounders" onclick="openProject('grounders')">
-      <div class="project-genre">Sci-fi postapocalíptico · Universo The 100</div>
-      <div class="project-title">Somos Grounders</div>
-      <div class="project-tagline">La llama que une y divide a los hermanos.</div>
-      <div class="project-stats">
-        <div class="stat"><div class="stat-num" id="hc-grounders-p">0</div><div class="stat-label">Personajes</div></div>
-        <div class="stat"><div class="stat-num" id="hc-grounders-e">0</div><div class="stat-label">Escenas</div></div>
-        <div class="stat"><div class="stat-num" id="hc-grounders-t">0</div><div class="stat-label">Total</div></div>
-      </div>
-      <div class="project-enter">Entrar →</div>
     </div>
   </div>
 </div>
@@ -1003,7 +978,13 @@ main{max-width:1100px;margin:0 auto;padding:14px 16px}
   <div class="writing-header" id="writing-header">
     <span class="writing-title" id="writing-mode-title">✍️ Modo escritura</span>
     <div class="writing-actions">
+      <select id="writing-status" onchange="updateWritingStatus()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#e0d8cc;font-family:'Inter',sans-serif;font-size:11px;padding:5px 8px;border-radius:6px;outline:none;cursor:pointer">
+        <option value="borrador">📝 Borrador</option>
+        <option value="pulido">✨ En pulido</option>
+        <option value="definitiva">✅ Definitiva</option>
+      </select>
       <span class="writing-wordcount" id="writing-wc">0 palabras</span>
+      <button class="writing-btn" onclick="openWritingMode()" title="Cambiar de escena">🔄 Cambiar escena</button>
       <button class="writing-btn save" onclick="saveWriting()">💾 Guardar</button>
       <button class="writing-btn" id="tts-btn" onclick="toggleTTS()" title="Escuchar en voz alta">🔊 Escuchar</button>
       <button class="writing-btn" onclick="closeWritingMode()">✕ Salir</button>
@@ -1059,7 +1040,94 @@ const ld=k=>{try{return JSON.parse(localStorage.getItem(k))||{}}catch{return{}}}
 const sv=(k,d)=>localStorage.setItem(k,JSON.stringify(d));
 let db={};
 let proj=null,tab='personaje',editId=null,searching=false;
-const PROJS={precio:{name:'El Precio del Deseo',th:'theme-precio'},reset:{name:'RESET',th:'theme-reset'},entrepinos:{name:'Entrepinos',th:'theme-entrepinos'},grounders:{name:'Somos Grounders',th:'theme-grounders'}};
+const DEFAULT_PROJS={
+  precio:{name:'El Precio del Deseo',th:'theme-precio',genre:'Romance · Thriller psicológico · Barcelona',tagline:'Dos personas. Dos mentiras. Un deseo que lo cambia todo.',builtin:true},
+  reset:{name:'RESET',th:'theme-reset',genre:'Ciencia ficción · Distopía · España 2045',tagline:'El apagón no fue un accidente. Fue el primer paso.',builtin:true},
+  entrepinos:{name:'Entrepinos',th:'theme-entrepinos',genre:'Romance · Reconstrucción emocional · Pirineo',tagline:'No cuenta cómo se enamoran. Cuenta cómo vuelven a merecer serlo.',builtin:true},
+  grounders:{name:'Somos Grounders',th:'theme-grounders',genre:'Sci-fi postapocalíptico · Universo The 100',tagline:'La llama que une y divide a los hermanos.',builtin:true}
+};
+const SKCustomProjs='gema-custom-projs-v1';
+function getCustomProjs(){
+  try{
+    const d=localStorage.getItem(SKCustomProjs);
+    if(!d)return{};
+    const parsed=JSON.parse(d);
+    if(typeof parsed!=='object'||Array.isArray(parsed))return{};
+    return parsed;
+  }catch{return{};}
+}
+function saveCustomProjs(p){localStorage.setItem(SKCustomProjs,JSON.stringify(p));}
+let PROJS={...DEFAULT_PROJS,...getCustomProjs()};
+
+function showNewProjectForm(){document.getElementById('new-project-overlay').style.display='flex';document.getElementById('np-title').focus();}
+function hideNewProjectForm(){
+  document.getElementById('new-project-overlay').style.display='none';
+  document.getElementById('np-title').value='';
+  document.getElementById('np-genre').value='';
+  document.getElementById('np-tagline').value='';
+}
+function saveNewProject(){
+  const title=document.getElementById('np-title').value.trim();
+  const genre=document.getElementById('np-genre').value.trim();
+  const tagline=document.getElementById('np-tagline').value.trim();
+  const theme=document.getElementById('np-theme').value;
+  if(!title){alert('Escribe un título para el proyecto');return;}
+  const id='proj_'+crypto.randomUUID().slice(0,8);
+  const custom=getCustomProjs();
+  custom[id]={name:title,th:theme,genre:genre||'Sin género especificado',tagline:tagline||'',builtin:false};
+  saveCustomProjs(custom);
+  PROJS={...DEFAULT_PROJS,...custom};
+  hideNewProjectForm();
+  buildProjectsGrid();
+  updateHome();
+}
+function deleteProject(id,e){
+  e.stopPropagation();
+  if(PROJS[id]?.builtin){alert('Los 4 proyectos originales no se pueden eliminar, pero puedes vaciarlos si quieres.');return;}
+  if(!confirm(`¿Eliminar el proyecto "${PROJS[id].name}"?\n\nEsto borrará TODOS sus datos: personajes, escenas, capítulos, conversaciones... No se puede deshacer.`))return;
+  const custom=getCustomProjs();
+  delete custom[id];
+  saveCustomProjs(custom);
+  PROJS={...DEFAULT_PROJS,...custom};
+  // Clean up localStorage data for this project
+  ['gema-caps-v1_','gema-chats-v2_','gema-sdg-v1_','gema-notas-v1_','gema-tareas-v1_','gema-citas-v1_'].forEach(prefix=>{
+    localStorage.removeItem(prefix+id);
+  });
+  delete db[id];
+  buildProjectsGrid();
+  updateHome();
+}
+
+function buildProjectsGrid(){
+  const grid=document.getElementById('projects-grid');
+  grid.innerHTML=Object.entries(PROJS).map(([id,p])=>`
+    <div class="project-card ${p.th}" onclick="openProject('${id}')">
+      ${!p.builtin?`<button onclick="deleteProject('${id}',event)" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.3);border:none;color:#9a9080;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer;z-index:5">✕</button>`:''}
+      <div class="project-genre">${p.genre||''}</div>
+      <div class="project-title">${p.name}</div>
+      <div class="project-tagline">${p.tagline||''}</div>
+      <div class="project-stats">
+        <div class="stat"><div class="stat-num" id="hc-${id}-p">0</div><div class="stat-label">Personajes</div></div>
+        <div class="stat"><div class="stat-num" id="hc-${id}-e">0</div><div class="stat-label">Escenas</div></div>
+        <div class="stat"><div class="stat-num" id="hc-${id}-t">0</div><div class="stat-label">Total</div></div>
+      </div>
+      <div class="project-enter">Entrar →</div>
+    </div>
+  `).join('');
+}
+
+function updateHome(){
+  buildProjectsGrid();
+  Object.keys(PROJS).forEach(p=>{
+    const a=db[p]||[];
+    const elP=document.getElementById('hc-'+p+'-p');
+    const elE=document.getElementById('hc-'+p+'-e');
+    const elT=document.getElementById('hc-'+p+'-t');
+    if(elP)elP.textContent=a.filter(d=>d.type==='personaje').length;
+    if(elE)elE.textContent=a.filter(d=>d.type==='escena').length;
+    if(elT)elT.textContent=a.length;
+  });
+}
 const TABS=['personaje','cronologia','localizacion','relacion','escena','referencia','documento'];
 const E=()=>db[proj]||[];
 const sl=s=>({canon:'Canon oficial',borrador:'Borrador',revision:'En revisión',descartado:'Descartado'}[s]||s);
@@ -1104,14 +1172,6 @@ async function deleteEntry(id){
 }
 
 // ══════ HOME ══════
-function updateHome(){
-  Object.keys(PROJS).forEach(p=>{
-    const a=db[p]||[];
-    document.getElementById('hc-'+p+'-p').textContent=a.filter(d=>d.type==='personaje').length;
-    document.getElementById('hc-'+p+'-e').textContent=a.filter(d=>d.type==='escena').length;
-    document.getElementById('hc-'+p+'-t').textContent=a.length;
-  });
-}
 function applyTheme(th){
   const ids=['topbar','tabs-bar','form-box','detail-box','tareas-box','ei-box','relmap-box','timeline-box','album-box','escenas-box','citas-box','ficha-box','smart-box','versions-box','history-box','tree-overlay','writing-overlay'];
   ids.forEach(id=>{const el=document.getElementById(id);if(el)el.className=el.className.replace(/theme-\w+/g,'').trim()+' '+th});
@@ -1736,17 +1796,21 @@ function selectTreeNode(id,el){
 let writingEntryId=null;
 
 function openWritingMode(entryId){
-  // If called from detail modal with specific entry
+  // If currently writing something with unsaved-looking content, offer to save first
+  if(!entryId&&writingEntryId&&document.getElementById('writing-textarea').value.trim()){
+    if(confirm('¿Guardar el texto actual antes de cambiar de escena?')){
+      saveWriting();
+    }
+  }
   if(entryId){
     writingEntryId=entryId;
     const item=E().find(d=>d.id===entryId);
     if(item) setupWritingMode(item);
   } else {
-    // Open blank or let user pick a scene
     writingEntryId=null;
     document.getElementById('writing-mode-title').textContent='✍️ Modo escritura';
-    document.getElementById('writing-entry-title').textContent='Nueva escritura';
-    document.getElementById('writing-entry-meta').textContent='Escribe libremente — puedes guardar como nota o documento';
+    document.getElementById('writing-entry-title').textContent='Elige una escena';
+    document.getElementById('writing-entry-meta').textContent='Selecciona en qué escena quieres escribir';
     document.getElementById('writing-textarea').value='';
     document.getElementById('writing-sidebar-content').innerHTML=buildWritingSceneList();
     document.getElementById('writing-notes').value='';
@@ -1765,6 +1829,7 @@ function setupWritingMode(item){
   const meta=[cap?`Cap. ${cap.num}: ${cap.title}`:'Sin capítulo asignado',item.date,item.scene_place].filter(Boolean).join(' · ');
   document.getElementById('writing-entry-meta').textContent=meta;
   document.getElementById('writing-textarea').value=item.writing_text||'';
+  document.getElementById('writing-status').value=item.writing_status||'borrador';
   updateWordCount();
 
   // Build sidebar
@@ -1809,6 +1874,7 @@ document.getElementById('writing-textarea').addEventListener('input',updateWordC
 async function saveWriting(){
   const text=document.getElementById('writing-textarea').value;
   const notes=document.getElementById('writing-notes').value;
+  const status=document.getElementById('writing-status').value;
   if(writingEntryId){
     const arr=E();
     const idx=arr.findIndex(d=>d.id===writingEntryId);
@@ -1816,10 +1882,10 @@ async function saveWriting(){
       await saveVersion(arr[idx]);
       arr[idx].writing_text=text;
       arr[idx].writing_notes=notes;
+      arr[idx].writing_status=status;
       db[proj]=arr;
       await saveEntry(arr[idx]);
-      await saveHistoryEntry(arr[idx].id,arr[idx].name,'escribió en modo escritura');
-      // Show saved indicator
+      await saveHistoryEntry(arr[idx].id,arr[idx].name,'escribió en modo escritura ('+status+')');
       const btn=document.querySelector('.writing-btn.save');
       const msg=document.getElementById('writing-saved-msg');
       const orig=btn.textContent;
@@ -1828,6 +1894,10 @@ async function saveWriting(){
       setTimeout(()=>{btn.textContent=orig;msg.style.display='none'},3000);
     }
   }
+}
+
+function updateWritingStatus(){
+  // Just visual feedback, actual save happens on saveWriting()
 }
 
 function closeWritingMode(){
@@ -2871,9 +2941,15 @@ function renderCoautoraHistory(){
 function updateCoautoraSugs(){const el=document.getElementById('coautora-suggestions');if(!el)return;const mode=document.getElementById('coautora-mode').value;const sugs=SUGGESTIONS_CA[mode]||SUGGESTIONS_CA.general;el.innerHTML=sugs.map(s=>`<button class="coautora-sug" onclick="setSug('${s.replace(/'/g,"\\'")}'">${s}</button>`).join('');}
 function updateCoautoraCtx(){const el=document.getElementById('coautora-ctx');if(!el)return;const total=E().length;el.textContent=total?`Accedo a ${total} registros de "${PROJS[proj]?.name}"`:'';}
 function setSug(text){document.getElementById('coautora-input').value=text;document.getElementById('coautora-input').focus();}
-document.getElementById('coautora-mode').addEventListener('change',updateCoautoraSugs);
-document.getElementById('coautora-input').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
-document.getElementById('coautora-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendCoautora();}});
+document.addEventListener('DOMContentLoaded',()=>{
+  const modeEl=document.getElementById('coautora-mode');
+  if(modeEl)modeEl.addEventListener('change',updateCoautoraSugs);
+  const inputEl=document.getElementById('coautora-input');
+  if(inputEl){
+    inputEl.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
+    inputEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendCoautora();}});
+  }
+});
 function toggleCoautoraTTS(){coautoraTTSEnabled=!coautoraTTSEnabled;const btn=document.getElementById('coautora-tts-btn');if(btn){btn.style.background=coautoraTTSEnabled?'var(--acc-lo)':'';btn.style.color=coautoraTTSEnabled?'var(--acc2)':'';btn.style.borderColor=coautoraTTSEnabled?'var(--acc-border)':'';btn.title=coautoraTTSEnabled?'Voz ON — pulsa para desactivar':'Leer respuestas en voz alta';}}
 function readCoautoraResponse(text){if(!coautoraTTSEnabled)return;window.speechSynthesis.cancel();const utt=new SpeechSynthesisUtterance(text);utt.lang='es-ES';utt.rate=0.92;const voices=window.speechSynthesis.getVoices();const esVoice=voices.find(v=>v.lang.startsWith('es'));if(esVoice)utt.voice=esVoice;window.speechSynthesis.speak(utt);}
 function buildCoautoraSystem(){
@@ -2899,6 +2975,7 @@ async function sendCoautora(){
 }
 
 // ══════ INIT ══════
+buildProjectsGrid();
 loadAllFromSupabase().then(()=>updateHome());
 </script>
 <!-- COAUTORA IA -->
